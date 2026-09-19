@@ -32,8 +32,17 @@ function saveTasks() {
 function loadTasks() {
     const storedTasks = localStorage.getItem("dailyTasks");
 
-    if (storedTasks) {
-        tasks = JSON.parse(storedTasks);
+    if (!storedTasks) {
+        renderTasks();
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(storedTasks);
+
+        tasks = Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        tasks = [];
     }
 
     renderTasks();
@@ -143,23 +152,31 @@ function addTask() {
 // Toggle Task
 // ===============================
 
-function toggleTask(id) {
-
+function updateTask(id, mutator) {
     tasks = tasks.map(task => {
-
         if (task.id === id) {
-            return {
-                ...task,
-                completed: !task.completed
-            };
+            return mutator(task);
         }
-
         return task;
     });
+}
 
+function saveAndRender() {
     saveTasks();
-
     renderTasks();
+}
+
+function getTaskElement(selector) {
+    return document.querySelector(selector)?.closest(".task-item");
+}
+
+function toggleTask(id) {
+    updateTask(id, task => ({
+        ...task,
+        completed: !task.completed
+    }));
+
+    saveAndRender();
 }
 
 
@@ -170,9 +187,7 @@ function editTask(id) {
 
     if (!task) return;
 
-    const taskElement = document.querySelector(
-        `.task-checkbox[data-id="${id}"]`
-    )?.closest(".task-item");
+    const taskElement = getTaskElement(`.task-checkbox[data-id="${id}"]`);
 
     if (!taskElement) return;
 
@@ -211,9 +226,7 @@ function editTask(id) {
 
 function saveEditedTask(id) {
 
-    const taskElement = document.querySelector(
-        `.save-btn[data-id="${id}"]`
-    )?.closest(".task-item");
+    const taskElement = getTaskElement(`.save-btn[data-id="${id}"]`);
 
     if (!taskElement) return;
 
@@ -226,21 +239,12 @@ function saveEditedTask(id) {
         return;
     }
 
-    tasks = tasks.map(task => {
+    updateTask(id, task => ({
+        ...task,
+        title: newTitle
+    }));
 
-        if (task.id === id) {
-            return {
-                ...task,
-                title: newTitle
-            };
-        }
-
-        return task;
-    });
-
-    saveTasks();
-
-    renderTasks();
+    saveAndRender();
 }
 
 // ===============================
@@ -251,9 +255,7 @@ function deleteTask(id) {
 
     tasks = tasks.filter(task => task.id !== id);
 
-    saveTasks();
-
-    renderTasks();
+    saveAndRender();
 }
 
 
