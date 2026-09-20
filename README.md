@@ -34,7 +34,5 @@ daily-task-planner/
 └── README.md
 ```
 
-## GitHub Repository
 
-https://github.com/shreya-ravi17/Daily-Task-Planner
 
